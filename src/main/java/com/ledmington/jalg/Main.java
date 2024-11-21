@@ -36,7 +36,16 @@ public final class Main {
 	}
 
 	public static void main(final String[] args) {
-		final Matrix A = DenseMatrix.random(10, 10, -1.0, 1.0);
+		int attempts = 0;
+		Matrix A;
+		do {
+			attempts++;
+			A = DenseMatrix.randomSymmetric(10, -1.0, 1.0);
+			if (attempts % 1000 == 0) {
+				System.out.printf("Generated %,d random matrices\n", attempts);
+			}
+		} while (!A.isSymmetric() || !A.isInvertible() || !A.isPositiveDefinite());
+
 		final Matrix b = DenseMatrix.random(10, 1, -1.0, 1.0);
 		System.out.printf("K(A) = %.6f\n", A.conditionNumber());
 		final Matrix x = Solvers.jacobi(A, b);

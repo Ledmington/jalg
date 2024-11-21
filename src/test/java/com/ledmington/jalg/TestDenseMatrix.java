@@ -182,4 +182,11 @@ public final class TestDenseMatrix {
 		final double k = m.conditionNumber();
 		assertTrue(k >= 1.0, () -> String.format("Expected condition number of %s to be >= 1 but was %+.6e.", m, k));
 	}
+
+	@ParameterizedTest
+	@ValueSource(ints = {2, 3, 4, 5, 6, 7, 8, 9, 10})
+	void randomSymmetric(final int size) {
+		final Matrix m = DenseMatrix.randomSymmetric(size, -10.0, 10.0);
+		assertTrue(m.isSymmetric());
+	}
 }

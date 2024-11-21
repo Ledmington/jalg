@@ -43,7 +43,11 @@ public interface Matrix {
 
 	double getDeterminant();
 
+	boolean isInvertible();
+
 	Matrix getInverse();
+
+	boolean isPositiveDefinite();
 
 	Matrix gaussJordan();
 

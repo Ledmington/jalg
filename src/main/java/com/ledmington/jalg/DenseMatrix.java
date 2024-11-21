@@ -36,6 +36,20 @@ public final class DenseMatrix implements Matrix {
 		return new DenseMatrix(v);
 	}
 
+	public static DenseMatrix randomSymmetric(final int size, final double low, final double high) {
+		final RandomGenerator rng = RandomGeneratorFactory.getDefault().create(System.nanoTime());
+		final double[][] v = new double[size][size];
+		for (int i = 0; i < size; i++) {
+			for (int j = 0; j < i; j++) {
+				final double x = rng.nextDouble(low, high);
+				v[i][j] = x;
+				v[j][i] = x;
+			}
+			v[i][i] = rng.nextDouble();
+		}
+		return new DenseMatrix(v);
+	}
+
 	public static DenseMatrix upperTriangular(final int size, final double low, final double high) {
 		final RandomGenerator rng = RandomGeneratorFactory.getDefault().create(System.nanoTime());
 		final double[][] v = new double[size][size];
@@ -171,6 +185,16 @@ public final class DenseMatrix implements Matrix {
 	@Override
 	public double norm() {
 		return this.getTranspose().multiply(this).get(0, 0);
+	}
+
+	@Override
+	public boolean isInvertible() {
+		return getDeterminant() != 0.0;
+	}
+
+	@Override
+	public boolean isPositiveDefinite() {
+		return getEigenvalues().stream().allMatch(x -> x >= 0.0);
 	}
 
 	@Override
