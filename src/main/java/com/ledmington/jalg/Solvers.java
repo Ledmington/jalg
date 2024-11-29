@@ -17,6 +17,8 @@
  */
 package com.ledmington.jalg;
 
+import java.math.BigDecimal;
+import java.math.MathContext;
 import java.util.stream.IntStream;
 
 public final class Solvers {
@@ -65,5 +67,55 @@ public final class Solvers {
 		}
 
 		return new DenseMatrix(xNew);
+	}
+
+	public static Matrix<BigDecimal> precisJeacobi(final Matrix<BigDecimal> A, final Matrix<BigDecimal> b) {
+		if (!A.isSquare()) {
+			throw new IllegalArgumentException("Matrix A is not a square.");
+		}
+		if (b.getNumColumns() != 1 || b.getNumRows() != A.getNumRows()) {
+			throw new IllegalArgumentException("Vector b is not a column vector.");
+		}
+
+		final MathContext ctx = new MathContext(100);
+		final int n = A.getNumRows();
+		final BigDecimal[][] x = new BigDecimal[n][1];
+		final BigDecimal[][] xNew = new BigDecimal[n][1];
+
+		for (int i = 0; i < n; i++) {
+			x[i][0] = BigDecimal.ZERO;
+		}
+
+		final int maxit = 100;
+		final BigDecimal tolerance = BigDecimal.valueOf(1e-8);
+		for (int k = 0; k < maxit; k++) {
+			for (int i = 0; i < n; i++) {
+				BigDecimal s = BigDecimal.ZERO;
+				for (int j = 0; j < n; j++) {
+					if (j == i) {
+						continue;
+					}
+					s = s.add(A.get(i, j).multiply(x[j][0], ctx), ctx);
+				}
+				xNew[i][0] = b.get(i, 0).subtract(s, ctx).divide(A.get(i, i), ctx);
+			}
+
+			if (IntStream.range(0, n)
+							.mapToObj(i -> xNew[i][0].subtract(x[i][0], ctx).abs())
+							.max(BigDecimal::compareTo)
+							.orElseThrow()
+							.compareTo(tolerance)
+					<= 0) {
+				break;
+			}
+
+			for (int i = 0; i < n; i++) {
+				x[i][0] = xNew[i][0];
+			}
+
+			// System.out.println(A.multiply(new DenseMatrix(x)).subtract(b).norm());
+		}
+
+		return new PreciseMatrix(xNew);
 	}
 }

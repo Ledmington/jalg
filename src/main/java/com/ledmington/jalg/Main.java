@@ -17,12 +17,13 @@
  */
 package com.ledmington.jalg;
 
+import java.math.BigDecimal;
 import java.util.random.RandomGenerator;
 import java.util.random.RandomGeneratorFactory;
 
 public final class Main {
 
-	private static void benchInverse() {
+	private static void benchInverseDouble() {
 		final long n = 1000L;
 		final long flops = n * (2L * n + (n - 1L) * 2L * n);
 		System.out.printf("Total FLOPs: %,d\n", flops);
@@ -38,26 +39,48 @@ public final class Main {
 		}
 	}
 
-	public static void main(final String[] args) {
+	private static void benchInverseBigDecimal() {
+		final long n = 100L;
+		final long flops = n * (2L * n + (n - 1L) * 2L * n);
+		System.out.printf("Total FLOPs: %,d\n", flops);
+		for (int i = 0; i < 10; i++) {
+			final Matrix<BigDecimal> m = PreciseMatrix.random((int) n, (int) n, -1.0, 1.0);
+			final long start = System.nanoTime();
+			m.getInverse();
+			final long end = System.nanoTime();
+			final long ns = end - start;
+			final double s = (double) ns / 1_000_000_000.0;
+			System.out.printf(
+					" %,d -> %,d ns (%.6f s) -> %.6f GFLOPs/s\n", n, ns, s, ((double) flops / s) / 1_000_000_000.0);
+		}
+	}
+
+	private static void preciseJacobi() {
 		final RandomGenerator rng = RandomGeneratorFactory.getDefault().create(System.nanoTime());
-		final Matrix<Double> A;
+		final Matrix<BigDecimal> A;
 		{
-			final double[][] m = new double[10][10];
+			final BigDecimal[][] m = new BigDecimal[10][10];
 			for (int i = 0; i < 10; i++) {
 				for (int j = 0; j < 10; j++) {
 					if (Math.abs(i - j) <= 1) {
-						m[i][j] = rng.nextDouble(-1.0, 1.0);
+						m[i][j] = BigDecimal.valueOf(rng.nextDouble(-1.0, 1.0));
+					} else {
+						m[i][j] = BigDecimal.ZERO;
 					}
 				}
 			}
-			A = new DenseMatrix(m);
+			A = new PreciseMatrix(m);
 		}
 
-		final Matrix<Double> b = DenseMatrix.random(10, 1, -1.0, 1.0);
+		final Matrix<BigDecimal> b = PreciseMatrix.random(10, 1, -1.0, 1.0);
 		System.out.printf("K(A) = %.6f\n", A.conditionNumber());
-		final Matrix<Double> x = Solvers.jacobi(A, b);
+		final Matrix<BigDecimal> x = Solvers.precisJeacobi(A, b);
 		System.out.println(x);
 
 		System.out.println(A.multiply(x).subtract(b).norm());
+	}
+
+	public static void main(final String[] args) {
+		benchInverseBigDecimal();
 	}
 }
