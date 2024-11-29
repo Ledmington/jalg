@@ -19,73 +19,47 @@ package com.ledmington.jalg;
 
 import java.util.List;
 
-public interface Matrix {
+public interface Matrix<X> {
 
 	int getNumRows();
 
 	int getNumColumns();
 
-	double get(final int row, final int column);
+	X get(final int row, final int column);
 
 	default boolean isSquare() {
 		return getNumRows() == getNumColumns();
 	}
 
-	default double conditionNumber() {
-		return this.norm() * this.getInverse().norm();
-	}
+	X conditionNumber();
 
-	double norm();
+	X norm();
 
-	Matrix getTranspose();
+	Matrix<X> getTranspose();
 
-	Matrix multiply(final Matrix m);
+	Matrix<X> multiply(final Matrix<X> m);
 
-	double getDeterminant();
+	X getDeterminant();
 
 	boolean isInvertible();
 
-	Matrix getInverse();
+	Matrix<X> getInverse();
 
 	boolean isPositiveDefinite();
 
-	Matrix gaussJordan();
+	Matrix<X> gaussJordan();
 
-	List<Double> getEigenvalues();
+	List<X> getEigenvalues();
 
-	Matrix subtract(final Matrix other);
+	Matrix<X> subtract(final Matrix<X> other);
 
 	default boolean isSymmetric() {
 		return this.equals(this.getTranspose());
 	}
 
-	default boolean isUpperTriangular() {
-		if (!isSquare()) {
-			throw new IllegalArgumentException("A rectangular matrix cannot be triangular.");
-		}
-		for (int i = 0; i < getNumRows(); i++) {
-			for (int j = 0; j < i; j++) {
-				if (get(i, j) != 0.0) {
-					return false;
-				}
-			}
-		}
-		return true;
-	}
+	boolean isUpperTriangular();
 
-	default boolean isLowerTriangular() {
-		if (!isSquare()) {
-			throw new IllegalArgumentException("A rectangular matrix cannot be triangular.");
-		}
-		for (int i = 0; i < getNumRows(); i++) {
-			for (int j = i + 1; j < getNumColumns(); j++) {
-				if (get(i, j) != 0.0) {
-					return false;
-				}
-			}
-		}
-		return true;
-	}
+	boolean isLowerTriangular();
 
 	default boolean isTriangular() {
 		return isLowerTriangular() || isUpperTriangular();
@@ -95,23 +69,5 @@ public interface Matrix {
 		return isLowerTriangular() && isUpperTriangular();
 	}
 
-	default boolean equals(final Matrix other, final double eps) {
-		if (eps < 0.0) {
-			throw new IllegalArgumentException("Negative epsilon.");
-		}
-		if (other == null) {
-			return false;
-		}
-		if (this.getNumRows() != other.getNumRows() || this.getNumColumns() != other.getNumColumns()) {
-			return false;
-		}
-		for (int i = 0; i < this.getNumRows(); i++) {
-			for (int j = 0; j < this.getNumColumns(); j++) {
-				if (Math.abs(this.get(i, j) - other.get(i, j)) > eps) {
-					return false;
-				}
-			}
-		}
-		return true;
-	}
+	boolean equals(final Matrix<X> other, final double eps);
 }

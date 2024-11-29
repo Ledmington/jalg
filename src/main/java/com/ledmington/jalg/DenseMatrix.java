@@ -23,7 +23,7 @@ import java.util.Objects;
 import java.util.random.RandomGenerator;
 import java.util.random.RandomGeneratorFactory;
 
-public final class DenseMatrix implements Matrix {
+public final class DenseMatrix implements Matrix<Double> {
 
 	public static DenseMatrix random(final int rows, final int columns, final double low, final double high) {
 		final RandomGenerator rng = RandomGeneratorFactory.getDefault().create(System.nanoTime());
@@ -111,6 +111,41 @@ public final class DenseMatrix implements Matrix {
 		return columns;
 	}
 
+	@Override
+	public Double conditionNumber() {
+		return this.norm() * this.getInverse().norm();
+	}
+
+	@Override
+	public boolean isUpperTriangular() {
+		if (!isSquare()) {
+			throw new IllegalArgumentException("A rectangular matrix cannot be triangular.");
+		}
+		for (int i = 0; i < getNumRows(); i++) {
+			for (int j = 0; j < i; j++) {
+				if (get(i, j) != 0.0) {
+					return false;
+				}
+			}
+		}
+		return true;
+	}
+
+	@Override
+	public boolean isLowerTriangular() {
+		if (!isSquare()) {
+			throw new IllegalArgumentException("A rectangular matrix cannot be triangular.");
+		}
+		for (int i = 0; i < getNumRows(); i++) {
+			for (int j = i + 1; j < getNumColumns(); j++) {
+				if (get(i, j) != 0.0) {
+					return false;
+				}
+			}
+		}
+		return true;
+	}
+
 	private void assertCorrectIndex(final int row, final int column) {
 		if (row < 0 || row >= rows || column < 0 || column >= columns) {
 			throw new IllegalArgumentException(
@@ -119,13 +154,13 @@ public final class DenseMatrix implements Matrix {
 	}
 
 	@Override
-	public double get(final int row, final int column) {
+	public Double get(final int row, final int column) {
 		assertCorrectIndex(row, column);
 		return this.m[row * columns + column];
 	}
 
 	@Override
-	public Matrix multiply(final Matrix other) {
+	public Matrix<Double> multiply(final Matrix<Double> other) {
 		if (this.columns != other.getNumRows()) {
 			throw new IllegalArgumentException("Invalid rows and columns.");
 		}
@@ -142,12 +177,12 @@ public final class DenseMatrix implements Matrix {
 	}
 
 	@Override
-	public double getDeterminant() {
+	public Double getDeterminant() {
 		if (!isSquare()) {
 			throw new IllegalArgumentException("Matrix must be square.");
 		}
 
-		final Matrix triangular = this.gaussJordan();
+		final Matrix<Double> triangular = this.gaussJordan();
 		double det = 1.0;
 		for (int i = 0; i < getNumRows(); i++) {
 			det *= triangular.get(i, i);
@@ -158,7 +193,7 @@ public final class DenseMatrix implements Matrix {
 
 	@Override
 	public List<Double> getEigenvalues() {
-		final Matrix triangular = this.gaussJordan();
+		final Matrix<Double> triangular = this.gaussJordan();
 		final List<Double> ev = new ArrayList<>();
 		for (int i = 0; i < getNumRows(); i++) {
 			ev.add(triangular.get(i, i));
@@ -167,7 +202,7 @@ public final class DenseMatrix implements Matrix {
 	}
 
 	@Override
-	public Matrix subtract(final Matrix other) {
+	public Matrix<Double> subtract(final Matrix<Double> other) {
 		if (this.getNumRows() != other.getNumRows() || this.getNumColumns() != other.getNumColumns()) {
 			throw new IllegalArgumentException("Different shapes.");
 		}
@@ -183,7 +218,7 @@ public final class DenseMatrix implements Matrix {
 	}
 
 	@Override
-	public double norm() {
+	public Double norm() {
 		return this.getTranspose().multiply(this).get(0, 0);
 	}
 
@@ -198,7 +233,7 @@ public final class DenseMatrix implements Matrix {
 	}
 
 	@Override
-	public Matrix getInverse() {
+	public Matrix<Double> getInverse() {
 		final double det = this.getDeterminant();
 		if (det == 0.0) {
 			throw new IllegalArgumentException("Matrix is singular, not-invertible.");
@@ -248,7 +283,7 @@ public final class DenseMatrix implements Matrix {
 	}
 
 	@Override
-	public Matrix getTranspose() {
+	public Matrix<Double> getTranspose() {
 		final double[][] v = new double[columns][rows];
 		for (int i = 0; i < rows; i++) {
 			for (int j = 0; j < columns; j++) {
@@ -259,7 +294,7 @@ public final class DenseMatrix implements Matrix {
 	}
 
 	@Override
-	public Matrix gaussJordan() {
+	public Matrix<Double> gaussJordan() {
 		if (!isSquare()) {
 			throw new IllegalArgumentException("Matrix must be square.");
 		}
@@ -291,6 +326,27 @@ public final class DenseMatrix implements Matrix {
 	}
 
 	@Override
+	public boolean equals(final Matrix<Double> other, final double eps) {
+		if (eps < 0.0) {
+			throw new IllegalArgumentException("Negative epsilon.");
+		}
+		if (other == null) {
+			return false;
+		}
+		if (this.getNumRows() != other.getNumRows() || this.getNumColumns() != other.getNumColumns()) {
+			return false;
+		}
+		for (int i = 0; i < this.getNumRows(); i++) {
+			for (int j = 0; j < this.getNumColumns(); j++) {
+				if (Math.abs(this.get(i, j) - other.get(i, j)) > eps) {
+					return false;
+				}
+			}
+		}
+		return true;
+	}
+
+	@Override
 	public String toString() {
 		final StringBuilder sb = new StringBuilder();
 		sb.append(getNumRows()).append('x').append(getNumColumns()).append('\n');
@@ -319,6 +375,7 @@ public final class DenseMatrix implements Matrix {
 	}
 
 	@Override
+	@SuppressWarnings("unchecked")
 	public boolean equals(final Object other) {
 		if (other == null) {
 			return false;
@@ -329,6 +386,6 @@ public final class DenseMatrix implements Matrix {
 		if (!this.getClass().equals(other.getClass())) {
 			return false;
 		}
-		return this.equals((Matrix) other, 0.0);
+		return this.equals((Matrix<Double>) other, 0.0);
 	}
 }

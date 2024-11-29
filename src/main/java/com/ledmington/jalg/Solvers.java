@@ -23,7 +23,7 @@ public final class Solvers {
 
 	private Solvers() {}
 
-	public static Matrix jacobi(final Matrix A, final Matrix b) {
+	public static Matrix<Double> jacobi(final Matrix<Double> A, final Matrix<Double> b) {
 		if (!A.isSquare()) {
 			throw new IllegalArgumentException("Matrix A is not a square.");
 		}

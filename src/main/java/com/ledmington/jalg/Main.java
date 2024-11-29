@@ -17,6 +17,9 @@
  */
 package com.ledmington.jalg;
 
+import java.util.random.RandomGenerator;
+import java.util.random.RandomGeneratorFactory;
+
 public final class Main {
 
 	private static void benchInverse() {
@@ -24,7 +27,7 @@ public final class Main {
 		final long flops = n * (2L * n + (n - 1L) * 2L * n);
 		System.out.printf("Total FLOPs: %,d\n", flops);
 		for (int i = 0; i < 10; i++) {
-			final Matrix m = DenseMatrix.random((int) n, (int) n, -1.0, 1.0);
+			final Matrix<Double> m = DenseMatrix.random((int) n, (int) n, -1.0, 1.0);
 			final long start = System.nanoTime();
 			m.getInverse();
 			final long end = System.nanoTime();
@@ -36,19 +39,23 @@ public final class Main {
 	}
 
 	public static void main(final String[] args) {
-		int attempts = 0;
-		Matrix A;
-		do {
-			attempts++;
-			A = DenseMatrix.randomSymmetric(10, -1.0, 1.0);
-			if (attempts % 1000 == 0) {
-				System.out.printf("Generated %,d random matrices\n", attempts);
+		final RandomGenerator rng = RandomGeneratorFactory.getDefault().create(System.nanoTime());
+		final Matrix<Double> A;
+		{
+			final double[][] m = new double[10][10];
+			for (int i = 0; i < 10; i++) {
+				for (int j = 0; j < 10; j++) {
+					if (Math.abs(i - j) <= 1) {
+						m[i][j] = rng.nextDouble(-1.0, 1.0);
+					}
+				}
 			}
-		} while (!A.isSymmetric() || !A.isInvertible() || !A.isPositiveDefinite());
+			A = new DenseMatrix(m);
+		}
 
-		final Matrix b = DenseMatrix.random(10, 1, -1.0, 1.0);
+		final Matrix<Double> b = DenseMatrix.random(10, 1, -1.0, 1.0);
 		System.out.printf("K(A) = %.6f\n", A.conditionNumber());
-		final Matrix x = Solvers.jacobi(A, b);
+		final Matrix<Double> x = Solvers.jacobi(A, b);
 		System.out.println(x);
 
 		System.out.println(A.multiply(x).subtract(b).norm());
