@@ -61,7 +61,7 @@ public final class TestDenseMatrix {
 	@ParameterizedTest
 	@MethodSource("invalidIndices")
 	void invalidAccess(final int row, final int column) {
-		final Matrix m = new DenseMatrix(new double[2][2]);
+		final Matrix<Double> m = new DenseMatrix(new double[2][2]);
 		assertThrows(IllegalArgumentException.class, () -> m.get(row, column));
 	}
 
@@ -76,7 +76,7 @@ public final class TestDenseMatrix {
 				v[i][j] = rng.nextDouble(-10.0, 10.0);
 			}
 		}
-		final Matrix m = new DenseMatrix(v);
+		final Matrix<Double> m = new DenseMatrix(v);
 		assertEquals(rows, m.getNumRows());
 		assertEquals(columns, m.getNumColumns());
 		for (int i = 0; i < rows; i++) {
@@ -89,8 +89,8 @@ public final class TestDenseMatrix {
 	@ParameterizedTest
 	@ValueSource(ints = {1, 2, 3, 4, 5, 6, 7, 8, 9, 10})
 	void testTranspose(final int size) {
-		final Matrix m = DenseMatrix.random(size, size, -10.0, 10.0);
-		final Matrix other = m.getTranspose().getTranspose();
+		final Matrix<Double> m = DenseMatrix.random(size, size, -10.0, 10.0);
+		final Matrix<Double> other = m.getTranspose().getTranspose();
 		assertEquals(m, other, () -> {
 			final StringBuilder sb = new StringBuilder();
 			for (int i = 0; i < m.getNumRows(); i++) {
@@ -109,7 +109,7 @@ public final class TestDenseMatrix {
 	@ParameterizedTest
 	@ValueSource(ints = {1, 2, 3, 4, 5, 6, 7, 8, 9, 10})
 	void identity(final int size) {
-		final Matrix m = DenseMatrix.identity(size);
+		final Matrix<Double> m = DenseMatrix.identity(size);
 		assertEquals(size, m.getNumRows());
 		assertEquals(size, m.getNumColumns());
 		for (int i = 0; i < m.getNumRows(); i++) {
@@ -131,8 +131,8 @@ public final class TestDenseMatrix {
 	@ParameterizedTest
 	@ValueSource(ints = {1, 2, 3, 4, 5, 6, 7, 8, 9, 10})
 	void multiplication(final int size) {
-		final Matrix m = DenseMatrix.random(size, size, -10.0, 10.0);
-		final Matrix i = DenseMatrix.identity(size);
+		final Matrix<Double> m = DenseMatrix.random(size, size, -10.0, 10.0);
+		final Matrix<Double> i = DenseMatrix.identity(size);
 		assertEquals(m, m.multiply(i));
 		assertEquals(m, i.multiply(m));
 	}
@@ -140,7 +140,7 @@ public final class TestDenseMatrix {
 	@ParameterizedTest
 	@ValueSource(ints = {1, 2, 3, 4, 5, 6, 7, 8, 9, 10})
 	void determinant(final int size) {
-		final Matrix m = DenseMatrix.upperTriangular(size, -10.0, 10.0);
+		final Matrix<Double> m = DenseMatrix.upperTriangular(size, -10.0, 10.0);
 		final double det =
 				IntStream.range(0, size).mapToDouble(i -> m.get(i, i)).reduce(1.0, (a, b) -> a * b);
 		assertTrue(relativeError(det, m.getDeterminant()) < 1e-12);
@@ -149,11 +149,11 @@ public final class TestDenseMatrix {
 	@ParameterizedTest
 	@ValueSource(ints = {1, 2, 3, 4, 5, 6, 7, 8, 9, 10})
 	void inversion(final int size) {
-		final Matrix m = DenseMatrix.random(size, size, -10.0, 10.0);
-		final Matrix inv = m.getInverse();
+		final Matrix<Double> m = DenseMatrix.random(size, size, -10.0, 10.0);
+		final Matrix<Double> inv = m.getInverse();
 		assertEquals(m.getNumRows(), inv.getNumRows());
 		assertEquals(m.getNumColumns(), inv.getNumColumns());
-		final Matrix i = DenseMatrix.identity(size);
+		final Matrix<Double> i = DenseMatrix.identity(size);
 		assertTrue(i.equals(m.multiply(inv), 1e-11));
 		assertTrue(i.equals(inv.multiply(m), 1e-11));
 	}
@@ -161,8 +161,8 @@ public final class TestDenseMatrix {
 	@ParameterizedTest
 	@ValueSource(ints = {1, 2, 3, 4, 5, 6, 7, 8, 9, 10})
 	void gaussJordan(final int size) {
-		final Matrix m = DenseMatrix.random(size, size, -10.0, 10.0);
-		final Matrix d = m.gaussJordan();
+		final Matrix<Double> m = DenseMatrix.random(size, size, -10.0, 10.0);
+		final Matrix<Double> d = m.gaussJordan();
 		assertTrue(d.isUpperTriangular());
 		assertTrue(d.isTriangular());
 		assertTrue(relativeError(m.getDeterminant(), d.getDeterminant()) < 1e-12);
@@ -178,7 +178,7 @@ public final class TestDenseMatrix {
 	@ParameterizedTest
 	@ValueSource(ints = {2, 3, 4, 5, 6, 7, 8, 9, 10})
 	void conditionNumber(final int size) {
-		final Matrix m = DenseMatrix.random(size, size, -10.0, 10.0);
+		final Matrix<Double> m = DenseMatrix.random(size, size, -10.0, 10.0);
 		final double k = m.conditionNumber();
 		assertTrue(k >= 1.0, () -> String.format("Expected condition number of %s to be >= 1 but was %+.6e.", m, k));
 	}
@@ -186,7 +186,7 @@ public final class TestDenseMatrix {
 	@ParameterizedTest
 	@ValueSource(ints = {2, 3, 4, 5, 6, 7, 8, 9, 10})
 	void randomSymmetric(final int size) {
-		final Matrix m = DenseMatrix.randomSymmetric(size, -10.0, 10.0);
+		final Matrix<Double> m = DenseMatrix.randomSymmetric(size, -10.0, 10.0);
 		assertTrue(m.isSymmetric());
 	}
 }

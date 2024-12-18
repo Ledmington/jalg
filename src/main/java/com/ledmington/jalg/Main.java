@@ -55,6 +55,22 @@ public final class Main {
 		}
 	}
 
+	private static void benchInverseRaw() {
+		final long n = 1000L;
+		final long flops = n * (2L * n + (n - 1L) * 2L * n);
+		System.out.printf("Total FLOPs: %,d\n", flops);
+		for (int i = 0; i < 10; i++) {
+			final double[] m = Jalg.randomMatrix((int) n, (int) n, -1.0, 1.0);
+			final long start = System.nanoTime();
+			Jalg.invert(m, (int) n, (int) n);
+			final long end = System.nanoTime();
+			final long ns = end - start;
+			final double s = (double) ns / 1_000_000_000.0;
+			System.out.printf(
+					" %,d -> %,d ns (%.6f s) -> %.6f GFLOPs/s\n", n, ns, s, ((double) flops / s) / 1_000_000_000.0);
+		}
+	}
+
 	private static void preciseJacobi() {
 		final RandomGenerator rng = RandomGeneratorFactory.getDefault().create(System.nanoTime());
 		final Matrix<BigDecimal> A;
@@ -81,6 +97,6 @@ public final class Main {
 	}
 
 	public static void main(final String[] args) {
-		benchInverseBigDecimal();
+		benchInverseRaw();
 	}
 }
